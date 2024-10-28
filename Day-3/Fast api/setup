@@ -1,0 +1,35 @@
+
+
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pymongo import MongoClient
+
+app = FastAPI()
+con = MongoClient("mongodb://localhost:27017/?directConnection=true/mydb")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+templates = Jinja2Templates(directory="templates")
+
+
+@app.get("/", response_class=HTMLResponse)
+async def read_item(request: Request):
+    docs = con.mydb.my.find({})
+    for doc in docs:
+        print(doc)
+    return templates.TemplateResponse(
+        request=request, name="index.html"
+    )
+
+
+@app.get("/admin")
+def get_admin():
+    return {"message": "Welcome to the admin section"}
+
+
+@app.post("/admin")
+def create_admin(username: str, password: str):
+    # validate the username and password here
+    return {"message": "Admin created successfully"}
